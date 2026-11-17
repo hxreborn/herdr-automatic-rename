@@ -806,6 +806,15 @@ ar_title_clean() {
   # The trailing slash comes off before the tail is taken: `~/dev/api/` names the
   # same directory `~/dev/api` does, and ${lower##*/} on a string that ends in one
   # is EMPTY, which matches no directory and walked the whole path through.
+  if [ -n "$dirlc" ] && [ "${lower:${#dirlc}:1}" = " " ] && [ "${lower:0:${#dirlc}}" = "$dirlc" ]; then
+    local rest=${t:$(( ${#dirlc} + 1 ))}
+    rest=${rest#"${rest%%[![:space:][:punct:]]*}"}
+    if [ -n "$rest" ]; then
+      t=$rest
+      lower=${lower:$(( ${#dirlc} + 1 ))}
+      lower=${lower#"${lower%%[![:space:][:punct:]]*}"}
+    fi
+  fi
   case $lower in
   *[[:space:]]*) : ;;
   *) local tail=${lower%/}; tail=${tail##*/}
@@ -1287,13 +1296,14 @@ ar_format() {
   # glyph in front, the only space is the one behind it and the trim left the
   # glyph alone on the tab.
   if ! ar_fits "$name" "$max"; then
+    local full=$name
     name=$(ar_trunc "$name" "$max")
     # A title is a sentence, so cut it at a word boundary rather than mid-word --
-    # but only when that leaves most of the budget, since "Investigate" tells you
+    # but only when that leaves a third of the budget, since "Investigate" tells you
     # more than "I" does.
-    if [ -n "$title" ]; then
+    if [ -n "$title" ] && [ "${full:${#name}:1}" != " " ]; then
       # ${name% *} is the whole string when there is no space in it, so a single
-      # long word is left cut where it was. The half-budget floor is what stops
+      # long word is left cut where it was. The third-of-budget floor is what stops
       # "Investigate" from becoming "I".
       #
       # Counted the same way the budget is. Calling it a heuristic and leaving it
@@ -1303,7 +1313,16 @@ ar_format() {
       # is the symptom this commit exists to remove. ar_fits is asked the opposite
       # question, so a floor of n is "does not fit in n-1".
       local short=${name% *}
-      ar_fits "$short" $(( max / 2 - 1 )) || name=$short
+      ar_fits "$short" $(( max / 3 - 1 )) || name=$short
+    fi
+    if [ -n "$title" ]; then
+      local last
+      while [ "${name% *}" != "$name" ]; do
+        ar_case "${name##* }" "$_AR_UPPER" "$_AR_LOWER"
+        last=$AR_CASE
+        ar_in_list "$last" "${TITLE_FILLER_WORDS[@]}" || break
+        name=${name% *}
+      done
     fi
   fi
   AR_ACTIVITY=$name

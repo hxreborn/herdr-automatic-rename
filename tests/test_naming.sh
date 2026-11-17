@@ -587,12 +587,26 @@ check "an unaliased agent shows its kind" "codex:auth flow" \
 # The name is charged to MAX_TITLE_LEN, so the task gives up the room and the tab
 # does not grow. Without a title there is nothing to prefix, and "cc:cc" would say
 # nothing twice.
-# 18 characters, three of them the name, and the word-boundary trim then takes
-# the partial word: without the prefix the same title keeps "why" as well.
+# 20 characters, three of them the name, and the word-boundary trim then takes
+# the partial word: without the prefix the same title keeps "nightly" as well.
 check "the name is priced into the budget" "cc:Investigate" \
-  "$(PROGRAM_ALIASES=("claude=cc"); MAX_TITLE_LEN=18 TITLE_STYLE=name_and_task ar_format 'claude' '' 'Investigate why the nightly job fails')"
-check "and the same title without it keeps more" "Investigate why" \
-  "$(MAX_TITLE_LEN=18 ar_format 'claude' '' 'Investigate why the nightly job fails')"
+  "$(PROGRAM_ALIASES=("claude=cc"); MAX_TITLE_LEN=20 TITLE_STYLE=name_and_task ar_format 'claude' '' 'Investigate nightly job failures')"
+check "and the same title without it keeps more" "Investigate nightly" \
+  "$(MAX_TITLE_LEN=20 ar_format 'claude' '' 'Investigate nightly job failures')"
+check "a cut on a word end keeps that word" "morphe-patches issue" \
+  "$(MAX_TITLE_LEN=20 ar_format 'claude' '' 'morphe-patches issue #921')"
+check "a mid-word cut falls back to the last whole word" "Herdr tab" \
+  "$(MAX_TITLE_LEN=20 ar_format 'claude' '' 'Herdr tab auto-naming plugin')"
+check "a cut ending on a filler word drops it" "Ghidra PR #10190" \
+  "$(MAX_TITLE_LEN=20 ar_format 'claude' '' 'Ghidra PR #10190 and #10192 updates')"
+check "an untruncated title keeps its filler" "fix the bug" \
+  "$(MAX_TITLE_LEN=20 ar_format 'claude' '' 'fix the bug')"
+check "a leading directory name comes off the title" "issue 910 ProtonMail" \
+  "$(_clean 'Morphe-patches issue 910 ProtonMail' claude morphe-patches)"
+check "a badge separator after the directory name goes too" "authentication migration" \
+  "$(_clean 'API | authentication migration' claude api)"
+check "a title that is only the directory name is refused" "" \
+  "$(_clean 'morphe-patches' claude morphe-patches)"
 # A REFUSED title, not an absent one: ar_title_clean turns the agent naming
 # itself into the empty string, and only then does the program name path run.
 check "a refused title is not prefixed" "cc" \

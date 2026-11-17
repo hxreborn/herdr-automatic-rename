@@ -444,7 +444,7 @@ JSON
 out=$(run_event tab.created >/dev/null 2>&1; log)
 check_rename   "a configured brand comes off"    "$out" w1:t1 "reviewing-unpushed-commits"
 check_absent   "and does not reach the tab"      "$out" "OC-reviewing"
-check_rename   "another agent keeps those chars" "$out" w1:t2 "API-authentication-migration"
+check_rename   "another agent keeps those chars" "$out" w1:t2 "authentication-migration"
 teardown
 
 # ----------------------------------------------------------------------
