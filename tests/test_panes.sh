@@ -230,6 +230,19 @@ pane report-metadata w1:q4 $SRC --agent claude --title etl --token topic=Investi
   "$(log)"
 teardown
 
+setup
+topics_json | fixture snapshot.json
+export PANE_TASK_TITLES=1
+run_event pane.focused
+check "PANE_TASK_TITLES gives an unnamed agent its task as its border title" \
+"pane report-metadata w1:q1 $SRC --agent codex --title Research upload tags --token topic=Research upload tags
+pane report-metadata w1:q2 $SRC --agent opencode --title Greeting and quick check-in
+pane report-metadata w1:q3 $SRC --clear-token topic
+pane report-metadata w1:q4 $SRC --agent claude --title etl --token topic=Investigate why the nightly ETL job drops rows" \
+  "$(log)"
+unset PANE_TASK_TITLES
+teardown
+
 # herdr 0.7.4 added --token. Below it, herdr refuses the whole call, so the
 # border title goes alone and no topic is asked for. Nor does it show tokens.
 setup

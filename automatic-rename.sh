@@ -2451,6 +2451,10 @@ $agents"
         topic_want=$(printf '%s' "$topic_want" | jq -Rrs '.[:80] | sub("[[:space:]]+$"; "")')
       fi
     fi
+    if [ "$CLEAR" != "1" ] && [ "$NAME_PANES" = "1" ] && [ "${PANE_TASK_TITLES:-0}" = "1" ] && [ -z "$want" ] && [ -z "$label" ] &&
+      [ -n "$topic_want" ]; then
+      want=$(MAX_TITLE_LEN=${PANE_TITLE_LEN:-40} ICONS_ENABLED=0 TITLE_STYLE=task ar_format "$kind" "" "$topic_want")
+    fi
     [ "$want" = "$title" ] && [ "$topic_want" = "$topic" ] && continue
     # Each value goes in its own argument: herdr refuses `--title=<value>` as an
     # unknown option, and takes the argument after a flag as its value whatever
